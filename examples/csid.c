@@ -6,9 +6,9 @@
 
 #include <sys/types.h>
 
-#include <SDL/SDL_config.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_audio.h>
+#include <SDL_config.h>
+#include <SDL.h>
+#include <SDL_audio.h>
 
 #include <libcsid.h>
 
