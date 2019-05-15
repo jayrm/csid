@@ -1,7 +1,10 @@
-#include <iostream>
-#include <string>
 #include "cppsid.h"
+#include <string>
+#include <iostream>
 
+/*
+ * Simple use-example for cppsid c++ wrapper
+ */
 int main()
 {
     CPPSID::Player player;

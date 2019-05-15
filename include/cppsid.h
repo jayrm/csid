@@ -18,11 +18,8 @@ namespace CPPSID {
             std::vector<unsigned char> buffer; // buffer for sid data
             size_t size; // sid size in bytes
             int samplerate;
-            int subtune = 0;
             int sidmodel;
-            int tunelength = -1;
-            bool is_playing = false;
-            bool is_loaded = false;
+            bool is_playing;
             static void sdl_callback(void*, unsigned char*, int);
         public:
             Player();

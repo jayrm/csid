@@ -1,16 +1,11 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-
-#include <fcntl.h>
-#include <cstdio>
-#include <unistd.h>
 
 #include <SDL_config.h>
 #include <SDL.h>
 #include <SDL_audio.h>
 
-#include "cppsid.h"
+#include <cppsid.h>
 
 extern "C" {
 #include <libcsid.h>
@@ -23,9 +18,9 @@ namespace CPPSID {
 
     Player::Player() {
         VERBOSE = false;
-        int samplerate = DEFAULT_SAMPLERATE;
-        int sidmodel = DEFAULT_SIDMODEL;
-        int tunelength = -1;
+        is_playing = false;
+        samplerate = DEFAULT_SAMPLERATE;
+        sidmodel = DEFAULT_SIDMODEL;
         if (SDL_Init(SDL_INIT_AUDIO) < 0)
             throw std::runtime_error("error initializing SDL");
 
@@ -36,41 +31,37 @@ namespace CPPSID {
         soundspec->samples = 32768;
         soundspec->userdata = nullptr;
         soundspec->callback = sdl_callback;
+
         if (SDL_OpenAudio(soundspec.get(), nullptr) < 0)
             throw std::runtime_error("could not open SDL audio");
 
         libcsid_init(samplerate, sidmodel);
     }
 
-    bool Player::load(const std::string &file, int _subtune) {
+    bool Player::load(const std::string &file, int subtune) {
         stop();
-        subtune = _subtune;
-        is_loaded = false;
         std::ifstream f(file.c_str(), std::ifstream::ate | std::ios::binary);
         if (f) {
             size = f.tellg(); // get SID size
             buffer.resize(size); // resize buffer
             f.seekg(0, f.beg); // go back to beginning of file
             f.read((char*)buffer.data(), size); // load sid into buffer
-            f.close();
-
             libcsid_load(buffer.data(), size, subtune);
-            is_loaded = true;
+            return true;
         }
-        else
-            std::cerr << "could not load SID file" << std::endl;
-        return is_loaded;
+        std::cerr << "could not load SID file" << std::endl;
+        return false;
     }
 
     void Player::info() {
-        if (is_loaded)
+        if (not buffer.empty())
             std::cout << "title:  " << libcsid_gettitle() << std::endl
                 << "author: " << libcsid_getauthor() << std::endl
                 << "info:   " << libcsid_getinfo() << std::endl;
     }
 
     void Player::start() {
-        if (is_loaded and is_playing==false) {
+        if (!buffer.empty() and is_playing==false) {
             SDL_PauseAudio(0);
             is_playing=true;
         }
