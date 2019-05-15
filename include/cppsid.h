@@ -16,7 +16,6 @@ namespace CPPSID {
         private:
             std::shared_ptr<SDL_AudioSpec> soundspec;
             std::vector<unsigned char> buffer; // buffer for sid data
-            size_t size; // sid size in bytes
             int samplerate;
             int sidmodel;
             bool is_playing;
@@ -25,7 +24,9 @@ namespace CPPSID {
             Player();
             ~Player();
             bool load(const std::string&, int=0); //!< load SID file
-            void info(); //!< show info
+            std::string title(); //!< get title
+            std::string author(); //!< get author
+            std::string info(); //!< get info
             void start(); //!< start playing
             void stop(); //!< stop playing
     };

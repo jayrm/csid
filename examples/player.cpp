@@ -8,8 +8,15 @@
 int main()
 {
     CPPSID::Player player;
-    if (player.load("Beyond_the_Zero.sid")) {
-        player.info();
+    int subsong = 0;
+    std::string file = "Beyond_the_Zero.sid";
+
+    if (player.load(file, subsong)) {
+
+        std::cout << "title:  " << player.title() << std::endl
+            << "author: " << player.author() << std::endl
+            << "info:   " << player.info() << std::endl;
+
         player.start();
         std::cin.get();
         player.stop();

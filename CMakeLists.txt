@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(csid)
+project(cppsid)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS NO)
 
@@ -18,4 +18,4 @@ add_executable(csidl examples/csid.c src/libcsidlight.c)
 add_executable(csid examples/csid.c src/libcsidfull.c)
 set_target_properties(csid PROPERTIES EXCLUDE_FROM_ALL TRUE)
 target_link_libraries(csidl ${SDL_LIBRARY})
-target_link_libraries(csid ${SDL_LIBRARY})
+TARGEt_link_libraries(csid ${SDL_LIBRARY})

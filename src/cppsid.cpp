@@ -40,38 +40,33 @@ namespace CPPSID {
 
     bool Player::load(const std::string &file, int subtune) {
         stop();
+        buffer.clear();
         std::ifstream f(file.c_str(), std::ifstream::ate | std::ios::binary);
         if (f) {
-            size = f.tellg(); // get SID size
-            buffer.resize(size); // resize buffer
+            buffer.resize(f.tellg()); // resize buffer (moves f forward)
             f.seekg(0, f.beg); // go back to beginning of file
-            f.read((char*)buffer.data(), size); // load sid into buffer
-            libcsid_load(buffer.data(), size, subtune);
+            f.read((char*)buffer.data(), buffer.size()); // load sid into buffer
+            libcsid_load(buffer.data(), buffer.size(), subtune);
             return true;
         }
         std::cerr << "could not load SID file" << std::endl;
         return false;
     }
 
-    void Player::info() {
-        if (not buffer.empty())
-            std::cout << "title:  " << libcsid_gettitle() << std::endl
-                << "author: " << libcsid_getauthor() << std::endl
-                << "info:   " << libcsid_getinfo() << std::endl;
-    }
+    std::string Player::author() { return libcsid_getauthor(); }
+    std::string Player::title() { return libcsid_gettitle(); }
+    std::string Player::info() { return libcsid_getinfo(); }
 
     void Player::start() {
-        if (!buffer.empty() and is_playing==false) {
+        if (not buffer.empty()) {
             SDL_PauseAudio(0);
             is_playing=true;
         }
     }
 
     void Player::stop() {
-        if (is_playing) {
-            SDL_PauseAudio(1);
-            is_playing=false;
-        }
+        SDL_PauseAudio(1);
+        is_playing=false;
     }
 
     Player::~Player() {
