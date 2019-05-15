@@ -3,15 +3,18 @@ project(cppsid)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS NO)
 
+# to use ppsid c++ wrapper, copy the following to CMakeLists.txt
+# --- from here ----
 find_package(SDL REQUIRED)
-
 include_directories(SYSTEM ${SDL_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# static c++ library and example
 add_library(cppsid STATIC src/libcsidlight.c src/cppsid.cpp)
+target_link_libraries(cppsid ${SDL_LIBRARY})
+# --- to here ---
+
+# c++ example using cppsid wrapper library
 add_executable(player examples/player.cpp)
-target_link_libraries(player cppsid ${SDL_LIBRARY})
+target_link_libraries(player cppsid)
 
 # original c examples
 add_executable(csidl examples/csid.c src/libcsidlight.c)
