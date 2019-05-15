@@ -244,8 +244,23 @@ void play(void* userdata, Uint8 *stream, int len ) //called by SDL at samplerate
     case 5: case 7: PC++; addr = memory[PC]; cycles=3; break; //zp
     case 0x17: PC++; if ((IR&0xC0)!=0x80) { addr = memory[PC] + X; cycles=4; } //zp,x for illegal opcodes
                else { addr = memory[PC] + Y; cycles=4; }  break; //zp,y for LAX/SAX illegal opcodes
-    case 0x1F: PC++; if ((IR&0xC0)!=0x80) { addr = memory[PC] + memory[++PC]*256 + X; cycles=5; } //abs,x for illegal opcodes
-               else { addr = memory[PC] + memory[++PC]*256 + Y; cycles=5; }  break; //abs,y for LAX/SAX illegal opcodes
+    case 0x1F:
+               PC++;
+               if ((IR&0xC0)!=0x80) {
+                   //addr = memory[PC] + memory[++PC]*256 + X; // unsequenced modification warning
+                   addr = memory[PC];
+                   PC++;
+                   addr += memory[PC]*256 + X;
+                   cycles=5;
+               } //abs,x for illegal opcodes
+               else {
+                   //addr = memory[PC] + memory[++PC]*256 + Y; // unsequenced modification warning
+                   addr = memory[PC];
+                   PC++;
+                   addr += memory[PC]*256 + Y;
+                   cycles=5;
+               }
+               break; //abs,y for LAX/SAX illegal opcodes
     case 9: case 0xB: PC++; addr = PC; cycles=2;  //immediate
    }
    addr&=0xFFFF;
@@ -515,7 +530,10 @@ int SID(char num, unsigned int baseaddr) //the SID emulation itself ('num' is th
    nonfilt += ((int)wfout - 0x8000) * envcnt[channel] / 256;
  }
  //update readable SID1-registers (some SID tunes might use 3rd channel ENV3/OSC3 value as control)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-comparison"
  if(num==0, memory[1]&3) { sReg[0x1B]=wfout>>8; sReg[0x1C]=envcnt[3]; } //OSC3, ENV3 (some players rely on it)    
+#pragma GCC diagnostic pop
 
  //FILTER: two integrator loop bi-quadratic filter, workings learned from resid code, but I kindof simplified the equations
  //The phases of lowpass and highpass outputs are inverted compared to the input, but bandpass IS in phase with the input signal.
