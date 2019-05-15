@@ -1,8 +1,8 @@
-# cSID portability modifications
+# C++ cSID wrapper
 
-Based on [cSID](http://csdb.dk/release/?id=153597) and [cSID-light](http://csdb.dk/release/?id=156587) by [Hermit](http://hermit.sidrip.com/)
+Based on [cSID](http://csdb.dk/release/?id=153597) and [cSID-light](http://csdb.dk/release/?id=156587) by [Hermit](http://hermit.sidrip.com/) and later modifications by [Possan](https://github.com/possan/csid-mod).
 
-Further compiler warning fixes; CMake support; SDL detection; and C++ wrapper library.
+This version adds compiler warning fixes; CMake support; SDL detection; and C++ wrapper library.
 Build and test with:
 
 ``` bash
@@ -11,7 +11,7 @@ make
 ./player
 ```
 
-# cSID-light by Hermit
+## cSID-light by Hermit [original readme]
 
  This version of cSID is more closely based on jsSID, using the same sampling
 frequency paced (non-cycleexact) approach to cause far lower CPU load...
