@@ -21,7 +21,7 @@ typedef unsigned char Uint8;
 // #define MAX_PLAYLIST_LEN 1000000
 // #define MAX_PLAYLIST_ROWLEN 600
 #define PAL_FRAMERATE 50.06 //50.0443427 //50.1245419 //(C64_PAL_CPUCLK/63/312.5), selected carefully otherwise some ADSR-sensitive tunes may suffer more:
-#define DEFAULT_SAMPLERATE 44100.0         //(Soldier of Fortune, 2nd Reality, Alliance, X-tra energy, Jackal, Sanxion, Ultravox, Hard Track, Swing, Myth, LN3, etc.)
+//#define DEFAULT_SAMPLERATE 44100.0         //(Soldier of Fortune, 2nd Reality, Alliance, X-tra energy, Jackal, Sanxion, Ultravox, Hard Track, Swing, Myth, LN3, etc.)
 #define CLOCK_RATIO_DEFAULT C64_PAL_CPUCLK/DEFAULT_SAMPLERATE  //(50.0567520: lowest framerate where Sanxion is fine, and highest where Myth is almost fine)
 #define VCR_SHUNT_6581 1500 //kOhm //cca 1.5 MOhm Rshunt across VCR FET drain and source (causing 220Hz bottom cutoff with 470pF integrator capacitors in old C64)
 #define VCR_FET_TRESHOLD 192 //Vth (on cutoff numeric range 0..2048) for the VCR cutoff-frequency control FET below which it doesn't conduct
@@ -251,8 +251,8 @@ void play(void* userdata, Uint8 *stream, int len ) //called by SDL at samplerate
    addr&=0xFFFF;
    switch (IR&0xE0) {
     case 0x60: if ((IR&0x1F)!=0xB) { if((IR&3)==3) {T=(memory[addr]>>1)+(ST&1)*128; ST&=124; ST|=(T&1); memory[addr]=T; cycles+=2;}   //ADC / RRA (ROR+ADC)
-                T=A; A+=memory[addr]+(ST&1); ST&=60; ST|=(A&128)|(A>255); A&=0xFF; ST |= (!A)<<1 | ( !((T^memory[addr])&0x80) & ((T^A)&0x80) ) >> 1; }
-               else { A&=memory[addr]; T+=memory[addr]+(ST&1); ST&=60; ST |= (T>255) | ( !((A^memory[addr])&0x80) & ((T^A)&0x80) ) >> 1; //V-flag set by intermediate ADC mechanism: (A&mem)+mem
+                T=A; A+=memory[addr]+(ST&1); ST&=60; ST|=(A&128)|(A>255); A&=0xFF; ST |= (!A)<<1 | ( (!((T^memory[addr])&0x80)) & ((T^A)&0x80) ) >> 1; }
+               else { A&=memory[addr]; T+=memory[addr]+(ST&1); ST&=60; ST |= (T>255) | ( (!((A^memory[addr])&0x80)) & ((T^A)&0x80) ) >> 1; //V-flag set by intermediate ADC mechanism: (A&mem)+mem
                 T=A; A=(A>>1)+(ST&1)*128; ST|=(A&128)|(T>127); ST|=(!A)<<1; }  break; // ARR (AND+ROR, bit0 not going to C, but C and bit7 get exchanged.)
     case 0xE0: if((IR&3)==3 && (IR&0x1F)!=0xB) {memory[addr]++;cycles+=2;}  T=A; A-=memory[addr]+!(ST&1); //SBC / ISC(ISB)=INC+SBC
                ST&=60; ST|=(A&128)|(A>=0); A&=0xFF; ST |= (!A)<<1 | ( ((T^memory[addr])&0x80) & ((T^A)&0x80) ) >> 1; break; 
@@ -610,7 +610,7 @@ void createCombinedWF(unsigned int* wfarray, float bitmul, float bitstrength, fl
  for (i=0; i<4096; i++) { wfarray[i]=0; 
   for (j=0; j<12;j++) {
    float bitlevel=0; 
-   for (k=0; k<12; k++) bitlevel += ( bitmul/pow(bitstrength,fabs(k-j)) ) * (((i>>k)&1)-0.5);
+   for (k=0; k<12; k++) bitlevel += ( bitmul/pow(bitstrength,abs(k-j)) ) * (((i>>k)&1)-0.5);
    wfarray[i] += (bitlevel>=treshold)? pow(2,j) : 0; } 
   wfarray[i]*=12;  
  }
