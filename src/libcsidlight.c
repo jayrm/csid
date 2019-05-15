@@ -29,6 +29,8 @@ typedef unsigned char Uint8;
 #define FILTER_DARKNESS_6581 22.0 //the bigger the value, the darker the filter control is (that is, cutoff frequency increases less with the same cutoff-value)
 #define FILTER_DISTORTION_6581 0.0016 //the bigger the value the more of resistance-modulation (filter distortion) is applied for 6581 cutoff-control
 
+bool VERBOSE = true;
+
 int OUTPUT_SCALEDOWN = SID_CHANNEL_AMOUNT * 16 + 26; 
 //raw output divided by this after multiplied by main volume, this also compensates for filter-resonance emphasis to avoid distotion
 
@@ -181,9 +183,9 @@ void init (byte subt)
   if (!memory[0xDC05]) {memory[0xDC04]=0x24; memory[0xDC05]=0x40;} //C64 startup-default
   frame_sampleperiod = (memory[0xDC04]+memory[0xDC05]*256)/clock_ratio; }
  else frame_sampleperiod = samplerate/PAL_FRAMERATE;  //Vsync timing
- printf("Frame-sampleperiod: %.0f samples  (%.1fX speed)\n", round(frame_sampleperiod), samplerate/PAL_FRAMERATE/frame_sampleperiod); 
+ if (VERBOSE) printf("Frame-sampleperiod: %.0f samples  (%.1fX speed)\n", round(frame_sampleperiod), samplerate/PAL_FRAMERATE/frame_sampleperiod); 
  //frame_sampleperiod = (memory[0xDC05]!=0 || (!timermode[subtune] && playaddf))? samplerate/PAL_FRAMERATE : (memory[0xDC04] + memory[0xDC05]*256) / clock_ratio; 
- if(playaddf==0) { playaddr = ((memory[1]&3)<2)? memory[0xFFFE]+memory[0xFFFF]*256 : memory[0x314]+memory[0x315]*256; printf("IRQ-playaddress:%4.4X\n",playaddr); }
+ if(playaddf==0) { playaddr = ((memory[1]&3)<2)? memory[0xFFFE]+memory[0xFFFF]*256 : memory[0x314]+memory[0x315]*256; if (VERBOSE) printf("IRQ-playaddress:%4.4X\n",playaddr); }
  else { playaddr=playaddf; if (playaddr>=0xE000 && memory[1]==0x37) memory[1]=0x35; } //player under KERNAL (Crystal Kingdom Dizzy)
  initCPU(playaddr); framecnt=1; finished=0; CPUtime=0; 
 }
@@ -199,7 +201,7 @@ void play(void* userdata, Uint8 *stream, int len ) //called by SDL at samplerate
     pPC=PC; if (CPU()>=0xFE || ( (memory[1]&3)>1 && pPC<0xE000 && (PC==0xEA31 || PC==0xEA81) ) ) {finished=1;break;} else CPUtime+=cycles; //RTS,RTI and IRQ player ROM return handling
     if ( (addr==0xDC05 || addr==0xDC04) && (memory[1]&3) && timermode[subtune] ) {
      frame_sampleperiod = (memory[0xDC04] + memory[0xDC05]*256) / clock_ratio;  //dynamic CIA-setting (Galway/Rubicon workaround)
-     if (!dynCIA) {dynCIA=1; printf("( Dynamic CIA settings. New frame-sampleperiod: %.0f samples  (%.1fX speed) )\n", round(frame_sampleperiod), samplerate/PAL_FRAMERATE/frame_sampleperiod);}
+     if (!dynCIA) {dynCIA=1; if (VERBOSE) printf("( Dynamic CIA settings. New frame-sampleperiod: %.0f samples  (%.1fX speed) )\n", round(frame_sampleperiod), samplerate/PAL_FRAMERATE/frame_sampleperiod);}
     }
     if(storadd>=0xD420 && storadd<0xD800 && (memory[1]&3)) {  //CJ in the USA workaround (writing above $d420, except SID2/SID3)
      if ( !(SID_address[1]<=storadd && storadd<SID_address[1]+0x1F) && !(SID_address[2]<=storadd && storadd<SID_address[2]+0x1F) )
@@ -668,11 +670,11 @@ int libcsid_load(unsigned char *_buffer, int _bufferlen, int _subtune) {
 
   offs = filedata[7];
   loadaddr = filedata[8] + filedata[9] ? filedata[8] * 256 + filedata[9] : filedata[offs] + filedata[offs + 1] * 256;
-  printf("\nOffset: $%4.4X, Loadaddress: $%4.4X \nTimermodes:", offs, loadaddr);
+  if (VERBOSE) printf("\nOffset: $%4.4X, Loadaddress: $%4.4X \nTimermodes:", offs, loadaddr);
 
   for (i = 0; i < 32; i++) {
     timermode[31 - i] = (filedata[0x12 + (i >> 3)] & (byte)pow(2, 7 - i % 8)) ? 1 : 0;
-    printf(" %1d",timermode[31 - i]);
+    if (VERBOSE) printf(" %1d",timermode[31 - i]);
   }
 
   for (i = 0; i < MAX_DATA_LEN; i++) {
@@ -716,18 +718,18 @@ int libcsid_load(unsigned char *_buffer, int _bufferlen, int _subtune) {
   // printf("Author: %s    ",SIDauthor);
   // printf("Info: %s",SIDinfo);
 
-  initaddr=filedata[0xA]+filedata[0xB]? filedata[0xA]*256+filedata[0xB] : loadaddr; playaddr=playaddf=filedata[0xC]*256+filedata[0xD]; printf("\nInit:$%4.4X,Play:$%4.4X, ",initaddr,playaddr);
+  initaddr=filedata[0xA]+filedata[0xB]? filedata[0xA]*256+filedata[0xB] : loadaddr; playaddr=playaddf=filedata[0xC]*256+filedata[0xD]; if (VERBOSE) printf("\nInit:$%4.4X,Play:$%4.4X, ",initaddr,playaddr);
   subtune_amount=filedata[0xF];
   preferred_SID_model[0] = (filedata[0x77]&0x30)>=0x20? 8580 : 6581;
-  printf("Subtunes:%d , preferred SID-model:%d", subtune_amount, preferred_SID_model[0]);
+  if (VERBOSE) printf("Subtunes:%d , preferred SID-model:%d", subtune_amount, preferred_SID_model[0]);
   preferred_SID_model[1] = (filedata[0x77]&0xC0)>=0x80 ? 8580 : 6581;
   preferred_SID_model[2] = (filedata[0x76]&3)>=3 ? 8580 : 6581; 
   SID_address[1] = filedata[0x7A]>=0x42 && (filedata[0x7A]<0x80 || filedata[0x7A]>=0xE0) ? 0xD000+filedata[0x7A]*16 : 0;
   SID_address[2] = filedata[0x7B]>=0x42 && (filedata[0x7B]<0x80 || filedata[0x7B]>=0xE0) ? 0xD000+filedata[0x7B]*16 : 0;
 
-  SIDamount=1+(SID_address[1]>0)+(SID_address[2]>0); if(SIDamount>=2) printf("(SID1), %d(SID2:%4.4X)",preferred_SID_model[1],SID_address[1]); 
+  SIDamount=1+(SID_address[1]>0)+(SID_address[2]>0); if(SIDamount>=2) if (VERBOSE) printf("(SID1), %d(SID2:%4.4X)",preferred_SID_model[1],SID_address[1]); 
   if(SIDamount==3) printf(", %d(SID3:%4.4X)",preferred_SID_model[2],SID_address[2]);
-  if (requested_SID_model!=-1) printf(" (requested:%d)",requested_SID_model); printf("\n");
+  if (requested_SID_model!=-1) if (VERBOSE) printf(" (requested:%d)",requested_SID_model); if (VERBOSE) printf("\n");
 
   for (i=0;i<SIDamount;i++) {
     if (requested_SID_model==8580 || requested_SID_model==6581) SID_model[i] = requested_SID_model;

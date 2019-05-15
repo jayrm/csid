@@ -18,6 +18,8 @@ typedef unsigned char Uint8;
 #define SID_CHANNEL_AMOUNT 3
 #define PAL_FRAMERATE 49.4 //important to match, otherwise some ADSR-sensitive tunes suffer.
 
+bool VERBOSE = true;
+
 int OUTPUT_SCALEDOWN; // = SID_CHANNEL_AMOUNT * 16 + 26; 
 //raw output divided by this after multiplied by main volume, this also compensates for filter-resonance emphasis to avoid distotion
 

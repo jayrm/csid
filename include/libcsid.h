@@ -1,6 +1,8 @@
 #ifndef _CSID_H_
 #define _CSID_H_
 
+#include <stdbool.h>
+
 #define MAX_DATA_LEN 65536
 
 #define SIDMODEL_8580 8580
@@ -18,5 +20,7 @@ extern const char *libcsid_getinfo();
 extern const char *libcsid_gettitle();
 
 extern void libcsid_render(unsigned short *output, int numsamples);
+
+extern bool VERBOSE;
 
 #endif
