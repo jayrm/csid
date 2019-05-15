@@ -7,7 +7,7 @@ int main()
     CPPSID::Player player;
     if (player.load("Beyond_the_Zero.sid")) {
         player.info();
-        player.play();
+        player.start();
         std::cin.get();
         player.stop();
     }
