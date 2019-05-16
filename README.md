@@ -11,6 +11,12 @@ make
 ./player
 ```
 
+## Requirements
+
+- cmake
+- C/C++ compiler
+- SDL library (currently only version 1 is detected)
+
 ## cSID-light by Hermit [original readme]
 
  This version of cSID is more closely based on jsSID, using the same sampling
