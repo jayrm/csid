@@ -15,7 +15,7 @@ make
 
 - cmake
 - C/C++ compiler
-- SDL2 library
+- SDL2 library (is you need SDL1, see cppsid v0.1.0)
 
 ## cSID-light by Hermit [original readme]
 
