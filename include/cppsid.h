@@ -14,6 +14,7 @@ namespace CPPSID {
      */
     class Player {
         private:
+            int sdl_device;
             std::shared_ptr<SDL_AudioSpec> soundspec;
             std::vector<unsigned char> buffer; // buffer for sid data
             int samplerate;

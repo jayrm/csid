@@ -1,10 +1,6 @@
 #include <iostream>
 #include <fstream>
-
-#include <SDL_config.h>
 #include <SDL.h>
-#include <SDL_audio.h>
-
 #include <cppsid.h>
 
 extern "C" {
@@ -32,7 +28,8 @@ namespace CPPSID {
         soundspec->userdata = nullptr;
         soundspec->callback = sdl_callback;
 
-        if (SDL_OpenAudio(soundspec.get(), nullptr) < 0)
+        sdl_device = SDL_OpenAudioDevice(nullptr, 0, soundspec.get(), nullptr, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
+        if (not sdl_device)
             throw std::runtime_error("could not open SDL audio");
 
         libcsid_init(samplerate, sidmodel);
@@ -59,19 +56,19 @@ namespace CPPSID {
 
     void Player::start() {
         if (not buffer.empty()) {
-            SDL_PauseAudio(0);
+            SDL_PauseAudioDevice(sdl_device, 0);
             is_playing=true;
         }
     }
 
     void Player::stop() {
-        SDL_PauseAudio(1);
+        SDL_PauseAudioDevice(sdl_device, 1);
         is_playing=false;
     }
 
     Player::~Player() {
         stop();
-        SDL_CloseAudio();
+        SDL_CloseAudioDevice(sdl_device);
     }
 
 }//namespace
