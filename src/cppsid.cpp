@@ -1,4 +1,3 @@
-#include <iostream>
 #include <fstream>
 #include <SDL.h>
 #include <cppsid.h>
@@ -44,9 +43,9 @@ namespace CPPSID {
             f.seekg(0, f.beg); // go back to beginning of file
             f.read((char*)buffer.data(), buffer.size()); // load sid into buffer
             libcsid_load(buffer.data(), buffer.size(), subtune);
-            return true;
+            if (not buffer.empty())
+                return true;
         }
-        std::cerr << "could not load SID file" << std::endl;
         return false;
     }
 
@@ -62,7 +61,8 @@ namespace CPPSID {
     }
 
     void Player::stop() {
-        SDL_PauseAudioDevice(sdl_device, 1);
+        if (is_playing)
+            SDL_PauseAudioDevice(sdl_device, 1);
         is_playing=false;
     }
 
