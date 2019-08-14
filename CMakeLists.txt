@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS NO)
 
 find_package(SDL2 CONFIG REQUIRED)
+# ix buggy sdl2: https://stackoverflow.com/questions/45730098/cmake-leading-or-trailing-whitespace-policy-cmp0004
+string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
 
 add_library(cppsid STATIC ${CMAKE_SOURCE_DIR}/src/libcsidlight.c ${CMAKE_SOURCE_DIR}/src/cppsid.cpp)
 target_link_libraries(cppsid PRIVATE ${SDL2_LIBRARIES})
