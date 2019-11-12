@@ -15,7 +15,7 @@ namespace CPPSID {
         VERBOSE = false;
         is_playing = false;
         samplerate = DEFAULT_SAMPLERATE;
-        sidmodel = DEFAULT_SIDMODEL;
+        sidmodel = SIDMODEL_8580;
         if (SDL_Init(SDL_INIT_AUDIO) < 0)
             throw std::runtime_error("error initializing SDL");
 
