@@ -1,4 +1,21 @@
-# C++ cSID wrapper
+# cSID-light fork for fbsound 1.2
+
+- this fork is to satify the calling needs of fbsound library and put the 
+  source somewhere it can be found.  Specifically ./src/libcsidlight.c and 
+  ./include/libcsid.h.  NOTE: no attempts have been made to support any other
+  parts of the cSID code base.
+- [fbsound](https://www.freebasic.net/forum/viewtopic.php?t=28905) by D.J.Peters 
+  is a sound player for [FreeBASIC](https://www.freebasic.net/)
+- Disclaimer: This is not the original modifications made to cSID-light that 
+  were included in the fbsound release but instead an attempt to try and build
+  all required components from source for inclusion in a release of headers and 
+  static libraries for FreeBASIC.
+- based on [cppsid](https://github.com/mlund/cppsid/) by Mikael Lund
+- which is based on [csid-mod](https://github.com/possan/csid-mod) by Per-Olov Jernberg
+- see following for more history :)
+
+
+## C++ cSID wrapper [by Mikael Lund] 
 
 Based on [cSID](http://csdb.dk/release/?id=153597) and [cSID-light](http://csdb.dk/release/?id=156587) by [Hermit](http://hermit.sidrip.com/) and later modifications by [Possan](https://github.com/possan/csid-mod).
 

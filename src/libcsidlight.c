@@ -29,7 +29,8 @@ typedef unsigned char Uint8;
 #define FILTER_DARKNESS_6581 22.0 //the bigger the value, the darker the filter control is (that is, cutoff frequency increases less with the same cutoff-value)
 #define FILTER_DISTORTION_6581 0.0016 //the bigger the value the more of resistance-modulation (filter distortion) is applied for 6581 cutoff-control
 
-bool VERBOSE = true;
+// turn of all output - we are going to be calling from a static and/or shared library
+#define VERBOSE 0
 
 int OUTPUT_SCALEDOWN = SID_CHANNEL_AMOUNT * 16 + 26; 
 //raw output divided by this after multiplied by main volume, this also compensates for filter-resonance emphasis to avoid distotion
@@ -195,7 +196,12 @@ void play(void* userdata, Uint8 *stream, int len ) //called by SDL at samplerate
 { 
  static int i,j, output;
  for(i=0;i<len;i+=2) {
-  framecnt--; if (framecnt<=0) { framecnt=frame_sampleperiod; finished=0; PC=playaddr; SP=0xFF; } // printf("%d  %f\n",framecnt,playtime); }
+
+  // fbsound hack - double the sample period
+  // otherwise playbackwill be twice as fast (but with correct pitch)
+  // see notes in init(), play(), libcsid_render()
+
+  framecnt--; if (framecnt<=0) { framecnt=frame_sampleperiod*2; finished=0; PC=playaddr; SP=0xFF; } // printf("%d  %f\n",framecnt,playtime); }
   if (finished==0) { 
    while (CPUtime<=clock_ratio) { 
     pPC=PC; if (CPU()>=0xFE || ( (memory[1]&3)>1 && pPC<0xE000 && (PC==0xEA31 || PC==0xEA81) ) ) {finished=1;break;} else CPUtime+=cycles; //RTS,RTI and IRQ player ROM return handling
@@ -382,6 +388,13 @@ const byte ADSR_exptable[256] = {1, 30, 30, 30, 30, 30, 30, 16, 16, 16, 16, 16, 
 void cSID_init(int samplerate)
 {
  int i;
+
+ // fbsound hack - double the sample rate
+ // otherwise playback will be pitched an octave down (but play at correct speed)
+ // see notes in init(), play(), libcsid_render()
+
+ samplerate *= 2;
+
  clock_ratio = C64_PAL_CPUCLK/samplerate;
  if (clock_ratio>9) { ADSRperiods[0]=clock_ratio; ADSRstep[0]=ceil(clock_ratio/9.0); }
  else { ADSRperiods[0]=9.0; ADSRstep[0]=1; }
@@ -532,10 +545,10 @@ int SID(char num, unsigned int baseaddr) //the SID emulation itself ('num' is th
    nonfilt += ((int)wfout - 0x8000) * envcnt[channel] / 256;
  }
  //update readable SID1-registers (some SID tunes might use 3rd channel ENV3/OSC3 value as control)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-comparison"
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wunused-comparison"
  if(num==0, memory[1]&3) { sReg[0x1B]=wfout>>8; sReg[0x1C]=envcnt[3]; } //OSC3, ENV3 (some players rely on it)    
-#pragma GCC diagnostic pop
+// #pragma GCC diagnostic pop
 
  //FILTER: two integrator loop bi-quadratic filter, workings learned from resid code, but I kindof simplified the equations
  //The phases of lowpass and highpass outputs are inverted compared to the input, but bandpass IS in phase with the input signal.
@@ -746,9 +759,24 @@ int libcsid_load(unsigned char *_buffer, int _bufferlen, int _subtune) {
   cSID_init(samplerate);
   init(subtune);
 
-  return 0;
+
+  // fbsound expects the number of tunes returned
+  return subtune_amount;
 }
 
-void libcsid_render(unsigned short *_output, int _numsamples) {
-  play(NULL, (Uint8 *)_output, _numsamples * 2);
+void libcsid_render(void *_output, int channels, int _numsamples)
+{
+
+  // TODO: channels?  Should there be a play_mono() and play_stereo()?
+  // for now, guessing that _numsamples is actually buffer size?
+  // not sure, when or how the stereo framing would be sent [jeff]
+  // anyway, buffer will over run if don't remove the original _numsamples*2
+
+  // original source doubled _numsamples
+  // fbsound hack - don't double the number of samples
+  // init() will have already adjusted the sample rate 
+  // play() adjusts the frame_sampleperiod
+  // see notes in init(), play(), libcsid_render()
+
+  play(NULL, (Uint8 *)_output, _numsamples );
 }
